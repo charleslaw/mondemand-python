@@ -1,9 +1,7 @@
 
 from socket import gethostname
 
-
-from lwes.emitter import LwesEmitter
-from lwes.event import LwesEvent
+import lwes
 
 
 #Constants for LWES messages
@@ -16,7 +14,7 @@ def get_hostname(str_len):
     hostname = gethostname()
     if len(hostname) > str_len:
         hostname = hostname[:1024]
-
+    
     return hostname
 
 
@@ -29,12 +27,15 @@ class LwesTransport(object):
                        'interface': interface,
                        'port': port}
 
-        emitter = LwesEmitter(address, interface, port,
-                              heartbeat_flag, heartbeat_frequency, ttl=ttl)
+        emitter = lwes.lwes_emitter_create_with_ttl(address, interface, port,
+                                                    heartbeat_flag,
+                                                    heartbeat_frequency, 1)
+        #emitter = LwesEmitter(address, interface, port,
+        #                      heartbeat_flag, heartbeat_frequency, ttl=ttl)
 
         if emitter is None:
             raise Exception('Out of memory')
-
+        
         self.transport \
             = {
                'log_sender_function': None, #mondemand_transport_lwes_log_sender,
@@ -43,24 +44,24 @@ class LwesTransport(object):
                'destroy_function': None, #mondemand_transport_lwes_destroy,
                'userdata': emitter
                }
-
+        
 
     def trace_sender(self, program_id, owner, trace_id, message, trace_dict):
 
         hostname = get_hostname(1024)
 
-        event = LwesEvent (None, LWES_TRACE_MSG)
-        event.set_STRING("mondemand.prog_id", program_id)
-        event.set_STRING("mondemand.trace_id", trace_id)
-        event.set_STRING("mondemand.owner", owner)
-        event.set_STRING("mondemand.src_host", hostname)
-        event.set_STRING("mondemand.message", message)
+        event = lwes.lwes_event_create(None, LWES_TRACE_MSG)
+        lwes.lwes_event_set_STRING(event, "mondemand.prog_id", program_id)
+        lwes.lwes_event_set_STRING(event, "mondemand.trace_id", trace_id)
+        lwes.lwes_event_set_STRING(event, "mondemand.owner", owner)
+        lwes.lwes_event_set_STRING(event, "mondemand.src_host", hostname)
+        lwes.lwes_event_set_STRING(event, "mondemand.message", message)
 
         for key in trace_dict:
-            event.set_STRING(key, trace_dict[key])
+            lwes.lwes_event_set_STRING(event, key, trace_dict[key])
 
         #lwes.lwes_emitter_emit(self.transport['userdata'], event)
-        self.transport['userdata'].emit(event)
+        lwes.lwes_emitter_emit(self.transport['userdata'], event)
 
         return 0
 
@@ -71,7 +72,8 @@ class LwesTransport(object):
         """
         if type(self) != type(other_object):
             return False
-
+        
         #check the important parameters
         #print "TESTing", self.config, other_object.config
         return self.config == other_object.config
+    

@@ -20,7 +20,7 @@ def send_msg(msg):
     m_client.clear_trace()
 
 
-for i in xrange(5):
+while True:
     send_msg('custom_message')
 
 
