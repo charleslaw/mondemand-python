@@ -29,6 +29,6 @@ setup(
     platforms='any',
     packages=['mondemand'],
     include_package_data=False,
-    install_requires=[],
+    install_requires=['lwes'],
     namespace_packages=['mondemand']
 )
