@@ -20,6 +20,15 @@ def send_msg(msg):
     m_client.clear_trace()
 
 
+    m_client.set_context('te1', 'tev1')
+    m_client.set_context('te2', 'tev2')
+    m_client.set_context('te3', 'tev3')
+
+    m_client.stats_set('stat_ga', 1234)
+    m_client.stats_inc('stat_in', value=3)
+
+    m_client.flush_stats()
+
 for i in xrange(5):
     send_msg('custom_message %s' % i)
 

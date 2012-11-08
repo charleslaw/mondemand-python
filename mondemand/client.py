@@ -1,28 +1,9 @@
 #TODO: Add mondemand_logs
 
-from lwes_transport import LwesTransport
-
-
-#Constants
-M_LOG_EMERG     =  0   # system is unusable
-M_LOG_ALERT     =  1   # action must be taken immediately
-M_LOG_CRIT      =  2   # critical conditions
-M_LOG_ERR       =  3   # error conditions
-M_LOG_WARNING   =  4   # warning conditions
-M_LOG_NOTICE    =  5   # normal but significant condition
-M_LOG_INFO      =  6   # informational
-M_LOG_DEBUG     =  7   # debug-level messages
-M_LOG_ALL       =  8   # all messages, including traces
-M_LOG_WARN  = M_LOG_WARNING
-M_LOG_ERROR = M_LOG_ERR
-
-MONDEMAND_INC = 0
-MONDEMAND_DEC = 1
-MONDEMAND_SET = 3
-
-MONDEMAND_UNKNOWN = 0
-MONDEMAND_GAUGE   = 1
-MONDEMAND_COUNTER = 2
+from mondemand.lwes_transport import LwesTransport
+from mondemand.constants import M_LOG_CRIT, M_LOG_NOTICE, \
+    MONDEMAND_INC, MONDEMAND_DEC, MONDEMAND_SET, \
+    MONDEMAND_GAUGE, MONDEMAND_COUNTER
 
 
 
@@ -167,6 +148,28 @@ class MondemandClient(object):
         Set a gague stat to a specified value.This is a GAUGE.
         """
         self.stats_perform_op(MONDEMAND_SET, MONDEMAND_GAUGE, key, value)
+
+
+    def flush_stats(self):
+        """
+        Send stats
+        """
+        i = 0
+
+        #TODO: Do we need to make sure there are contexts
+        if self.stats:
+            # we have something to send
+
+            # fetch the stats
+            message_keys = self.stats.keys()
+
+            for transport in self.transports:
+                #send the trace
+                trace_sender = transport.transport.get('stats_sender_function')
+                if trace_sender:
+                    status = trace_sender(self.program_id,
+                                          self.stats,
+                                          self.contexts)
 
 
 
